@@ -1,4 +1,6 @@
+import time
 import ccxt
+import pandas as pd
 from unittest import TestCase
 from crypto_data_fetcher.bybit import BybitFetcher
 
@@ -19,6 +21,21 @@ class TestBybit(TestCase):
         self.assertEqual(df['volume'].iloc[0], 14779268)
         self.assertEqual(df.index[-1].timestamp() - df.index[0].timestamp(), (df.shape[0] - 1) * 24 * 60 * 60)
 
+        # 未確定足が無いことの確認
+        self.assertLess(df.index.max(), pd.to_datetime(time.time() // (24 * 60 * 60) * (24 * 60 * 60), unit='s', utc=True))
+
+    def test_fetch_ohlcv_start_time(self):
+        bybit = ccxt.bybit()
+        fetcher = BybitFetcher(ccxt_client=bybit)
+
+        df = fetcher.fetch_ohlcv(
+            market='BTCUSD',
+            interval_sec=24 * 60 * 60,
+            start_time=pd.to_datetime('2021-01-01 00:00:00Z', utc=True),
+        )
+
+        self.assertEqual(df.index[0], pd.to_datetime('2021-01-01 00:00:00Z', utc=True))
+
     def test_fetch_ohlcv_incremental(self):
         bybit = ccxt.bybit()
         fetcher = BybitFetcher(ccxt_client=bybit)
@@ -37,6 +54,23 @@ class TestBybit(TestCase):
         )
         self.assertTrue(df.iloc[-1].equals(last_row))
         self.assertEqual(df.index[-1].timestamp() - df.index[0].timestamp(), (df.shape[0] - 1) * 24 * 60 * 60)
+
+    def test_fetch_ohlcv_incremental_empty(self):
+        bybit = ccxt.bybit()
+        fetcher = BybitFetcher(ccxt_client=bybit)
+
+        df = fetcher.fetch_ohlcv(
+            market='BTCUSD',
+            interval_sec=24 * 60 * 60,
+        )
+        before_count = df.shape[0]
+
+        df = fetcher.fetch_ohlcv(
+            df=df,
+            market='BTCUSD',
+            interval_sec=24 * 60 * 60,
+        )
+        self.assertEqual(df.shape[0], before_count)
 
     def test_fetch_ohlcv_mark(self):
         bybit = ccxt.bybit()

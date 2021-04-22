@@ -1,5 +1,5 @@
 import pandas as pd
-from .utils import smart_append, create_null_logger
+from .utils import smart_append, create_null_logger, normalize_to_unix
 
 class BybitFetcher:
     def __init__(self, logger=create_null_logger(), ccxt_client=None):
@@ -10,7 +10,7 @@ class BybitFetcher:
         limit = 200
 
         if start_time:
-            from_time = start_time.timestamp()
+            from_time = int(normalize_to_unix(start_time))
         else:
             from_time = 1
 
@@ -124,7 +124,10 @@ class BybitFetcher:
             if len(data) < limit:
                 break
 
-        return smart_append(df, pd.concat(dfs).set_index('timestamp'))
+        if len(dfs) == 0:
+            return df.copy()
+        else:
+            return smart_append(df, pd.concat(dfs).set_index('timestamp'))
 
     # df_premium_index has to be minutes data for accurate fr
     def calc_fr_from_premium_index(self, df_premium_index=None):
