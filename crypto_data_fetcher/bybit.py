@@ -20,7 +20,7 @@ class BybitFetcher:
         interval = {
             1: 'D',
             7: 'W',
-        }[interval_sec // (24 * 60 * 60)] or interval_sec // 60
+        }.get(interval_sec // (24 * 60 * 60)) or interval_sec // 60
 
         is_linear = market.endswith('USDT')
 

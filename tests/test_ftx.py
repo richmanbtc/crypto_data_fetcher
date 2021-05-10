@@ -135,3 +135,16 @@ class TestFtx(TestCase):
             market='BTC-PERP',
         )
         self.assertEqual(df.shape[0], before_count)
+
+    def test_fetch_ohlcv_initial_min(self):
+        ftx = ccxt.ftx()
+        fetcher = FtxFetcher(ccxt_client=ftx)
+
+        df = fetcher.fetch_ohlcv(
+            market='BTC-PERP',
+            interval_sec=60,
+            start_time=time.time() - 60 * 60
+        )
+
+        self.assertGreater(df.shape[0], 1)
+        self.assertLess(df.shape[0], 61)

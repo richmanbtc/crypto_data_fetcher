@@ -136,3 +136,15 @@ class TestBybit(TestCase):
         print(df)
         self.assertEqual(df.index[-1].timestamp() - df.index[0].timestamp(), (df.shape[0] - 1) * 24 * 60 * 60)
 
+    def test_fetch_ohlcv_initial_min(self):
+        bybit = ccxt.bybit()
+        fetcher = BybitFetcher(ccxt_client=bybit)
+
+        df = fetcher.fetch_ohlcv(
+            market='BTCUSD',
+            interval_sec=60,
+            start_time=time.time() - 60 * 60
+        )
+
+        self.assertGreater(df.shape[0], 1)
+        self.assertLess(df.shape[0], 61)
