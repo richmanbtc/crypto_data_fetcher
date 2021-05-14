@@ -136,7 +136,7 @@ class TestFtx(TestCase):
         )
         self.assertEqual(df.shape[0], before_count)
 
-    def test_fetch_ohlcv_initial_min(self):
+    def test_fetch_ohlcv_initial_minute(self):
         ftx = ccxt.ftx()
         fetcher = FtxFetcher(ccxt_client=ftx)
 
@@ -148,3 +148,26 @@ class TestFtx(TestCase):
 
         self.assertGreater(df.shape[0], 1)
         self.assertLess(df.shape[0], 61)
+
+    def test_fetch_ohlcv_out_of_range(self):
+        ftx = ccxt.ftx()
+        fetcher = FtxFetcher(ccxt_client=ftx)
+
+        df = fetcher.fetch_ohlcv(
+            market='BTC-20201225',
+            interval_sec=24 * 60 * 60,
+            start_time=time.time() - 7 * 24 * 60 * 60
+        )
+
+        self.assertIsNone(df)
+
+    def test_fetch_fr_out_of_range(self):
+        ftx = ccxt.ftx()
+        fetcher = FtxFetcher(ccxt_client=ftx)
+
+        df = fetcher.fetch_fr(
+            market='BTC-20201225',
+            start_time=time.time() - 7 * 24 * 60 * 60
+        )
+
+        self.assertIsNone(df)

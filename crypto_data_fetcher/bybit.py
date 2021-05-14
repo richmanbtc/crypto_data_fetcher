@@ -90,7 +90,7 @@ class BybitFetcher:
                         'limit': limit
                     })['result']
 
-            if len(data) <= 1: # 最後を取り除くので最低2個必要
+            if data is None or len(data) <= 1: # 最後を取り除くので最低2個必要
                 break
 
             # self.logger.debug(data)
@@ -125,7 +125,7 @@ class BybitFetcher:
                 break
 
         if len(dfs) == 0:
-            return df.copy()
+            return None if df is None else df.copy()
         else:
             return smart_append(df, pd.concat(dfs).set_index('timestamp'))
 

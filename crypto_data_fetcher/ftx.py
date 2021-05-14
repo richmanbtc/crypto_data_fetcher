@@ -67,7 +67,7 @@ class FtxFetcher:
             dfs.append(df2)
 
         if len(dfs) == 0:
-            return df.copy()
+            return None if df is None else df.copy()
         else:
             df = smart_append(df, pd.concat(dfs).set_index('timestamp'))
             # 最後は未確定足なので削除
@@ -127,7 +127,7 @@ class FtxFetcher:
             dfs.append(df2)
 
         if len(dfs) == 0:
-            return df.copy()
+            return None if df is None else df.copy()
         else:
             return smart_append(df, pd.concat(dfs).set_index('timestamp'))
 

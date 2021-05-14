@@ -8,7 +8,7 @@ crypto_data_fetcher
 ## Install
 
 ```bash
-pip install "git+https://github.com/richmanbtc/crypto_data_fetcher.git@v0.0.3#egg=crypto_data_fetcher"
+pip install "git+https://github.com/richmanbtc/crypto_data_fetcher.git@v0.0.4#egg=crypto_data_fetcher"
 ```
 
 ## Usage
@@ -36,4 +36,8 @@ CC0
 
 ```bash
 python3 -m unittest tests/test_*
+```
+
+```bash
+pyenv exec pipenv run python3 -m unittest tests/test_*
 ```
