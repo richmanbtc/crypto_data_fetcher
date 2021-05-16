@@ -171,3 +171,13 @@ class TestFtx(TestCase):
         )
 
         self.assertIsNone(df)
+
+    def test_fetch_fr_old_future(self):
+        ftx = ccxt.ftx()
+        fetcher = FtxFetcher(ccxt_client=ftx)
+
+        df = fetcher.fetch_fr(
+            market='BNB-20190329',
+        )
+
+        self.assertIsNone(df)

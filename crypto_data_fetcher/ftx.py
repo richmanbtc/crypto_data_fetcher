@@ -140,6 +140,9 @@ class FtxFetcher:
             'limit': limit
         })['result']
 
+        if len(data) == 0:
+            return int(time.time())
+
         df2 = pd.DataFrame(data)
         columns = ['timestamp']
         df2 = df2.rename(columns={
