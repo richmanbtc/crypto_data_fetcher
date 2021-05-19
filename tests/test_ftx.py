@@ -1,7 +1,7 @@
 import time
 import ccxt
 import pandas as pd
-from unittest import TestCase
+from unittest import TestCase, mock
 from crypto_data_fetcher.ftx import FtxFetcher
 
 class TestFtx(TestCase):
@@ -191,6 +191,28 @@ class TestFtx(TestCase):
         )
 
         self.assertEqual(end_time, 1608865200)
+
+    @mock.patch('time.time', mock.MagicMock(return_value=12345))
+    def test_find_total_end_time_spot(self):
+        ftx = ccxt.ftx()
+        fetcher = FtxFetcher(ccxt_client=ftx)
+
+        end_time = fetcher._find_total_end_time(
+            market='BTC/USD',
+        )
+
+        self.assertEqual(end_time, 12345 - 1)
+
+    @mock.patch('time.time', mock.MagicMock(return_value=12345))
+    def test_find_total_end_time_perp(self):
+        ftx = ccxt.ftx()
+        fetcher = FtxFetcher(ccxt_client=ftx)
+
+        end_time = fetcher._find_total_end_time(
+            market='BTC-PERP',
+        )
+
+        self.assertEqual(end_time, 12345 - 1)
 
     def test_fetch_ohlcv_old_future(self):
         ftx = ccxt.ftx()

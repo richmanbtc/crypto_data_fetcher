@@ -155,9 +155,12 @@ class FtxFetcher:
         return df2['timestamp'].min().timestamp()
 
     def _find_total_end_time(self, market=None):
-        future = self.ccxt_client.publicGetFuturesFutureName({
-            'future_name': market,
-        }).get('result')
+        try:
+            future = self.ccxt_client.publicGetFuturesFutureName({
+                'future_name': market,
+            })['result']
+        except Exception as e:
+            return time.time() - 1
         if future is not None and future['expiry'] is not None:
             return min([pd.to_datetime(future['expiry'], utc=True).timestamp(), time.time() - 1])
         else:
