@@ -24,11 +24,11 @@ class FtxFetcher:
 
         dfs = []
 
-        now = time.time() # ロジックが複雑になるので固定
+        total_end_time = min([self._find_end_time(market=market), time.time() - 1])
 
-        while from_time < now - 1:
+        while from_time < total_end_time:
             end_time = from_time + interval_sec * limit
-            end_time = min([end_time, now - 1]) # 未来時刻だと何も返らないので
+            end_time = min([end_time, total_end_time]) # 未来時刻だと何も返らないので
             self.logger.debug('{} {} {}'.format(market, from_time, end_time))
 
             data = self.ccxt_client.publicGetMarketsMarketNameCandles({
@@ -92,11 +92,11 @@ class FtxFetcher:
 
         dfs = []
 
-        now = time.time() # ロジックが複雑になるので固定
+        total_end_time = min([self._find_end_time(market=market), time.time() - 1])
 
-        while from_time < now - 1:
+        while from_time < total_end_time:
             end_time = from_time + interval_sec * limit
-            end_time = min([end_time, now - 1]) # 未来時刻だと何も返らないので
+            end_time = min([end_time, total_end_time]) # 未来時刻だと何も返らないので
             self.logger.debug('{} {} {}'.format(market, from_time, end_time))
 
             data = self.ccxt_client.publicGetFundingRates({
@@ -151,3 +151,24 @@ class FtxFetcher:
         df2['timestamp'] = pd.to_datetime(df2['timestamp'], utc=True)
 
         return df2['timestamp'].min().timestamp()
+
+    def _find_end_time(self, market=None):
+        limit = 1
+
+        data = self.ccxt_client.publicGetMarketsMarketNameCandles({
+            'market_name': market,
+            'resolution': 15,
+            'limit': limit
+        })['result']
+
+        if len(data) == 0:
+            return int(time.time())
+
+        df2 = pd.DataFrame(data)
+        columns = ['timestamp']
+        df2 = df2.rename(columns={
+            'startTime': 'timestamp',
+        })[columns]
+        df2['timestamp'] = pd.to_datetime(df2['timestamp'], utc=True)
+
+        return df2['timestamp'].max().timestamp() + 15
