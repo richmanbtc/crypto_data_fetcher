@@ -191,3 +191,14 @@ class TestFtx(TestCase):
         )
 
         self.assertEqual(end_time, 1608865200)
+
+    def test_fetch_ohlcv_old_future(self):
+        ftx = ccxt.ftx()
+        fetcher = FtxFetcher(ccxt_client=ftx)
+
+        df = fetcher.fetch_ohlcv(
+            market='BTC-20201225',
+            interval_sec=24 * 60 * 60,
+        )
+
+        self.assertEqual(df.index[0], pd.to_datetime('2020-06-08 00:00:00Z', utc=True))
