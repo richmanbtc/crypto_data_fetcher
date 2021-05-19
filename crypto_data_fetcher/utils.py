@@ -1,6 +1,8 @@
 from logging import getLogger
 
 def smart_append(df, other):
+    if other is None or other.shape[0] == 0:
+        return df.copy()
     if df is None:
         df = other.copy()
     else:
