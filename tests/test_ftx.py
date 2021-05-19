@@ -181,3 +181,13 @@ class TestFtx(TestCase):
         )
 
         self.assertIsNone(df)
+
+    def test_find_total_end_time(self):
+        ftx = ccxt.ftx()
+        fetcher = FtxFetcher(ccxt_client=ftx)
+
+        end_time = fetcher._find_total_end_time(
+            market='BTC-20201225',
+        )
+
+        self.assertEqual(end_time, 1608865200)

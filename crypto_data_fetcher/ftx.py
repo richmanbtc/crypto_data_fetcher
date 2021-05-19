@@ -1,5 +1,6 @@
-import pandas as pd
+import re
 import time
+import pandas as pd
 from .utils import smart_append, create_null_logger, normalize_to_unix
 
 class FtxFetcher:
@@ -21,10 +22,11 @@ class FtxFetcher:
         # ftxは最近のデータが返ってくるから、最初から取得するには、end_timeをstart_time + interval * limitに設定する必要がある
         # そうすると、データが足りないことを終了判定に使えないから、データが足りないときはfrom_timeを進める
         # from_timeが現在を超えたら終了
+        # end_timeが現在時刻を超えたら何も返らないので注意 (expired futureは現在時刻の代わりにfuture期限)
 
         dfs = []
 
-        total_end_time = min([self._find_end_time(market=market), time.time() - 1])
+        total_end_time = self._find_total_end_time(market=market)
 
         while from_time < total_end_time:
             end_time = from_time + interval_sec * limit
@@ -92,7 +94,7 @@ class FtxFetcher:
 
         dfs = []
 
-        total_end_time = min([self._find_end_time(market=market), time.time() - 1])
+        total_end_time = self._find_total_end_time(market=market)
 
         while from_time < total_end_time:
             end_time = from_time + interval_sec * limit
@@ -152,23 +154,11 @@ class FtxFetcher:
 
         return df2['timestamp'].min().timestamp()
 
-    def _find_end_time(self, market=None):
-        limit = 1
-
-        data = self.ccxt_client.publicGetMarketsMarketNameCandles({
-            'market_name': market,
-            'resolution': 15,
-            'limit': limit
-        })['result']
-
-        if len(data) == 0:
-            return int(time.time())
-
-        df2 = pd.DataFrame(data)
-        columns = ['timestamp']
-        df2 = df2.rename(columns={
-            'startTime': 'timestamp',
-        })[columns]
-        df2['timestamp'] = pd.to_datetime(df2['timestamp'], utc=True)
-
-        return df2['timestamp'].max().timestamp() + 15
+    def _find_total_end_time(self, market=None):
+        future = self.ccxt_client.publicGetFuturesFutureName({
+            'future_name': market,
+        }).get('result')
+        if future is not None and future['expiry'] is not None:
+            return min([pd.to_datetime(future['expiry'], utc=True).timestamp(), time.time() - 1])
+        else:
+            return time.time() - 1
