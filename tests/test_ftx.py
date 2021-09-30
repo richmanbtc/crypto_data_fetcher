@@ -224,3 +224,19 @@ class TestFtx(TestCase):
         )
 
         self.assertEqual(df.index[0], pd.to_datetime('2020-06-08 00:00:00Z', utc=True))
+
+    # 後でなおす
+    def test_fetch_ohlcv_bug(self):
+        ftx = ccxt.ftx()
+        fetcher = FtxFetcher(ccxt_client=ftx)
+
+        print(fetcher._find_total_end_time(
+            market='MKR-20200626',
+        ))
+
+        df = fetcher.fetch_ohlcv(
+            market='MKR-20200626',
+            interval_sec=300,
+        )
+
+        self.assertEqual(df.index[0], pd.to_datetime('2020-06-08 00:00:00Z', utc=True))
