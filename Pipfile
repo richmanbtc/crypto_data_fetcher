@@ -9,6 +9,7 @@ verify_ssl = true
 ccxt = "==1.48.32"
 pandas = "*"
 six = "*"
+joblib = "*"
 
 [requires]
 python_version = "3.6"
