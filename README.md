@@ -8,7 +8,7 @@ crypto_data_fetcher
 ## Install
 
 ```bash
-pip install "git+https://github.com/richmanbtc/crypto_data_fetcher.git@v0.0.11#egg=crypto_data_fetcher"
+pip install "git+https://github.com/richmanbtc/crypto_data_fetcher.git@v0.0.12#egg=crypto_data_fetcher"
 ```
 
 ## Usage
