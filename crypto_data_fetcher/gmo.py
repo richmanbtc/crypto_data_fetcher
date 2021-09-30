@@ -48,7 +48,7 @@ class GmoFetcher:
                 date.year,
                 date.month,
                 date.day,
-                market.replace('/', '_'),
+                market,
             )
             time.sleep(1)
             self.logger.debug(url)
