@@ -23,7 +23,7 @@ class TestFtx(TestCase):
         self.assertEqual(df.index[-1].timestamp() - df.index[0].timestamp(), (df.shape[0] - 1) * 24 * 60 * 60)
 
         # 未確定足が無いことの確認
-        self.assertLess(df.index.max(), pd.to_datetime(time.time() // (24 * 60 * 60) * (24 * 60 * 60), unit='s', utc=True))
+        self.assertEqual(df.index.max(), pd.to_datetime((time.time() // (24 * 60 * 60) - 1) * (24 * 60 * 60), unit='s', utc=True))
 
     def test_fetch_ohlcv_start_time(self):
         ftx = ccxt.ftx()

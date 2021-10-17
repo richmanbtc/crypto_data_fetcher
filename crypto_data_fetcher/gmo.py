@@ -32,8 +32,8 @@ def url_read_csv(url):
     return None
 
 class GmoFetcher:
-    def __init__(self, logger=create_null_logger(), ccxt_client=None, memory=None):
-        self.logger = logger
+    def __init__(self, logger=None, ccxt_client=None, memory=None):
+        self.logger = create_null_logger() if logger is None else logger
         self.ccxt_client = ccxt_client
 
         if memory is None:

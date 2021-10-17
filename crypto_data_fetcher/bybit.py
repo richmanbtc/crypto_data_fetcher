@@ -2,8 +2,8 @@ import pandas as pd
 from .utils import smart_append, create_null_logger, normalize_to_unix
 
 class BybitFetcher:
-    def __init__(self, logger=create_null_logger(), ccxt_client=None):
-        self.logger = logger
+    def __init__(self, logger=None, ccxt_client=None):
+        self.logger = create_null_logger() if logger is None else logger
         self.ccxt_client = ccxt_client
 
     def fetch_ohlcv(self, df=None, start_time=None, interval_sec=None, market=None, price_type=None):
