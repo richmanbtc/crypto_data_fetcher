@@ -24,6 +24,8 @@ class FtxFetcher:
         # from_timeが現在を超えたら終了
         # end_timeが現在時刻を超えたら何も返らないので注意 (expired futureは現在時刻の代わりにfuture期限)
 
+        # 普通に未来から過去へ取得する方法でも良いかもしれない(okexはそう実装した)。
+
         dfs = []
 
         total_end_time = self._find_total_end_time(market=market)
