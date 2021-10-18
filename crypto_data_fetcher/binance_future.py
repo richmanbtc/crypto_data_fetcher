@@ -13,7 +13,7 @@ class BinanceFutureFetcher:
         limit = 1500
 
         if start_time:
-            from_time = normalize_to_unix(start_time) * 1000
+            from_time = int(normalize_to_unix(start_time) * 1000)
         else:
             from_time = 1
 
