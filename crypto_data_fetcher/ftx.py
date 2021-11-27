@@ -1,4 +1,3 @@
-import re
 import time
 import pandas as pd
 from .utils import smart_append, create_null_logger, normalize_to_unix
@@ -35,13 +34,24 @@ class FtxFetcher:
             end_time = min([end_time, total_end_time]) # 未来時刻だと何も返らないので
             self.logger.debug('{} {} {}'.format(market, from_time, end_time))
 
-            data = self.ccxt_client.publicGetMarketsMarketNameCandles({
-                'market_name': market,
-                'start_time': from_time,
-                'end_time': end_time - 1, # キャッシュを無効にするために必要。境界値を含む仕様っぽいので含まないように調整
-                'resolution': interval_sec,
-                'limit': limit
-            })['result']
+            if price_type == 'index':
+                data = self.ccxt_client.publicGetIndexesMarketNameCandles({
+                    'market_name': market.replace('-PERP', ''),
+                    'start_time': from_time,
+                    'end_time': end_time - 1, # キャッシュを無効にするために必要。境界値を含む仕様っぽいので含まないように調整
+                    'resolution': interval_sec,
+                    'limit': limit
+                })['result']
+            elif price_type is None:
+                data = self.ccxt_client.publicGetMarketsMarketNameCandles({
+                    'market_name': market,
+                    'start_time': from_time,
+                    'end_time': end_time - 1, # キャッシュを無効にするために必要。境界値を含む仕様っぽいので含まないように調整
+                    'resolution': interval_sec,
+                    'limit': limit
+                })['result']
+            else:
+                raise Exception('unknown price_type {}'.format(price_type))
 
             from_time = end_time
 

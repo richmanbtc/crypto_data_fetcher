@@ -25,6 +25,27 @@ class TestFtx(TestCase):
         # 未確定足が無いことの確認
         self.assertEqual(df.index.max(), pd.to_datetime((time.time() // (24 * 60 * 60) - 1) * (24 * 60 * 60), unit='s', utc=True))
 
+    def test_fetch_ohlcv_index(self):
+        ftx = ccxt.ftx()
+        fetcher = FtxFetcher(ccxt_client=ftx)
+
+        df = fetcher.fetch_ohlcv(
+            market='BTC-PERP',
+            interval_sec=24 * 60 * 60,
+            price_type='index',
+        )
+        print(df)
+
+        self.assertEqual(df['op'].iloc[0], 10532.400561321)
+        self.assertEqual(df['hi'].iloc[0], 11094.361620957)
+        self.assertEqual(df['lo'].iloc[0], 10385.558948835)
+        self.assertEqual(df['cl'].iloc[0], 10758.259167146)
+        self.assertTrue('volume' not in df.columns)
+        self.assertEqual(df.index[-1].timestamp() - df.index[0].timestamp(), (df.shape[0] - 1) * 24 * 60 * 60)
+
+        # 未確定足が無いことの確認
+        self.assertEqual(df.index.max(), pd.to_datetime((time.time() // (24 * 60 * 60) - 1) * (24 * 60 * 60), unit='s', utc=True))
+
     def test_fetch_ohlcv_start_time(self):
         ftx = ccxt.ftx()
         fetcher = FtxFetcher(ccxt_client=ftx)
