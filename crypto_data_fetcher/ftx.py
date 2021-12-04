@@ -189,7 +189,7 @@ class FtxFetcher:
         if len(dfs) == 0:
             return None if df is None else df.copy()
         else:
-            return smart_append(df, pd.concat(dfs).set_index('timestamp'))
+            return smart_append(df, pd.concat(dfs).set_index('id'))
 
     def _find_start_time(self, market=None):
         limit = 5000
