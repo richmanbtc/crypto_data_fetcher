@@ -1,3 +1,4 @@
+import math
 import time
 import pandas as pd
 from .utils import smart_append, create_null_logger, normalize_to_unix
@@ -10,13 +11,12 @@ class FtxFetcher:
     def fetch_ohlcv(self, df=None, start_time=None, interval_sec=None, market=None, price_type=None):
         limit = 5000
 
-        if start_time:
+        if df is not None and df.shape[0]:
+            from_time = int(df.index.max().timestamp()) + interval_sec
+        elif start_time:
             from_time = normalize_to_unix(start_time)
         else:
             from_time = self._find_start_time(market=market)
-
-        if df is not None and df.shape[0]:
-            from_time = int(df.index.max().timestamp()) + interval_sec
 
         # ftxは最近のデータが返ってくるから、最初から取得するには、end_timeをstart_time + interval * limitに設定する必要がある
         # そうすると、データが足りないことを終了判定に使えないから、データが足りないときはfrom_timeを進める
@@ -92,13 +92,12 @@ class FtxFetcher:
         limit = 1000 # undocumented
         interval_sec = 60 * 60
 
-        if start_time:
+        if df is not None and df.shape[0]:
+            from_time = int(df.index.max().timestamp()) + interval_sec
+        elif start_time:
             from_time = normalize_to_unix(start_time)
         else:
             from_time = self._find_start_time(market=market)
-
-        if df is not None and df.shape[0]:
-            from_time = int(df.index.max().timestamp()) + interval_sec
 
         # ftxは最近のデータが返ってくるから、最初から取得するには、end_timeをstart_time + interval * limitに設定する必要がある
         # そうすると、データが足りないことを終了判定に使えないから、データが足りないときはfrom_timeを進める
@@ -139,6 +138,53 @@ class FtxFetcher:
                 df2[col] = df2[col].astype('float64')
 
             dfs.append(df2)
+
+        if len(dfs) == 0:
+            return None if df is None else df.copy()
+        else:
+            return smart_append(df, pd.concat(dfs).set_index('timestamp'))
+
+    def fetch_my_trades(self, df=None, start_time=None, market=None):
+        limit = 5000 # undocumented
+
+        if df is not None and df.shape[0]:
+            from_time = math.floor(df.index.max().timestamp())
+        elif start_time:
+            from_time = normalize_to_unix(start_time)
+        else:
+            from_time = self._find_start_time(market=market)
+
+        # ftxは最近のデータが返ってくるから、未来から過去へ取得
+
+        dfs = []
+
+        total_end_time = self._find_total_end_time(market=market)
+        end_time = total_end_time
+
+        while from_time < end_time:
+            self.logger.debug('{} {} {}'.format(market, from_time, end_time))
+
+            data = self.ccxt_client.fetch_my_trades(market, params={
+                'start_time': from_time,
+                'end_time': end_time, # キャッシュを無効にするために必要。多分、境界値を含む仕様。漏らさないように重複させて取得
+                'limit': limit
+            })
+
+            if len(data) <= 0:
+                self.logger.debug('len(data) <= 1')
+                continue
+
+            df2 = pd.json_normalize(data, sep='_')
+            df2 = df2.rename(columns={
+            })[['timestamp', 'id', 'type', 'side', 'price', 'amount', 'cost', 'fee_cost', 'fee_currency', 'fee_rate']]
+            df2['timestamp'] = pd.to_datetime(df2['timestamp'], unit='ms', utc=True)
+
+            end_time = math.ceil(df2['timestamp'].min().timestamp())
+
+            dfs.append(df2)
+
+            if len(data) <= 10:
+                break
 
         if len(dfs) == 0:
             return None if df is None else df.copy()
