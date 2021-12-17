@@ -1,13 +1,19 @@
+from numbers import Number
+from typing import Optional, Union
 import time
 import pandas as pd
 from .utils import smart_append, create_null_logger, normalize_to_unix
+from .types import IHasTimestamp
+
 
 class OkexFetcher:
     def __init__(self, logger=None, ccxt_client=None):
         self.logger = create_null_logger() if logger is None else logger
         self.ccxt_client = ccxt_client
 
-    def fetch_ohlcv(self, df=None, start_time=None, interval_sec=None, market=None, price_type=None):
+    def fetch_ohlcv(self, df: Optional[pd.DataFrame], start_time: Optional[Union[IHasTimestamp, Number]],
+                    interval_sec: int,
+                    market: str, price_type: Optional[str]) -> Optional[pd.DataFrame]:
         if price_type is not None:
             raise Exception('price_type {} not implemented'.format(price_type))
 
@@ -26,7 +32,7 @@ class OkexFetcher:
         while from_time < end_time:
             data = self.ccxt_client.publicGetMarketHistoryCandles({
                 'instId': market,
-                'after': end_time, # end_time未満 (ftxと違い、end_timeを含まない)
+                'after': end_time,  # end_time未満 (ftxと違い、end_timeを含まない)
                 'bar': format_interval_sec(interval_sec),
                 # limit: max is 100, default is 100
             })['data']
@@ -68,6 +74,7 @@ class OkexFetcher:
     # not implemented
     # def fetch_fr(self, df=None, start_time=None, market=None):
     #     pass
+
 
 def format_interval_sec(interval_sec):
     interval_min = interval_sec // 60

@@ -1,3 +1,4 @@
+from typing import Optional
 import time
 import numpy as np
 import pandas as pd
@@ -5,31 +6,6 @@ import datetime
 import urllib.request
 from .utils import create_null_logger
 
-def url_exists(url):
-    try:
-        time.sleep(1)
-        res = urllib.request.urlopen(url)
-        if res.getcode() == 200:
-            return True
-    except urllib.error.HTTPError:
-        pass
-    return False
-
-def url_read_csv(url):
-    try:
-        time.sleep(1)
-        df = pd.read_csv(url)
-        df = df.rename(columns={
-            'symbol': 'market',
-        })
-        df['price'] = df['price'].astype('float64')
-        df['size'] = df['size'].astype('float64')
-        df['timestamp'] = pd.to_datetime(df['timestamp'], utc=True)
-        df['side'] = np.where(df['side'] == 'BUY', 1, -1).astype('int8')
-        return df
-    except urllib.error.HTTPError:
-        pass
-    return None
 
 class GmoFetcher:
     def __init__(self, logger=None, ccxt_client=None, memory=None):
@@ -46,7 +22,7 @@ class GmoFetcher:
             url_read_csv_cached = memory.cache(url_read_csv)
             self._url_read_csv = url_read_csv_cached
 
-    def fetch_ohlcv(self, interval_sec=None, market=None):
+    def fetch_ohlcv(self, interval_sec: int, market: str) -> Optional[pd.DataFrame]:
         return self.fetch_trades(market=market, interval_sec=interval_sec)
 
     def fetch_trades(self, market=None, interval_sec=None):
@@ -114,5 +90,29 @@ class GmoFetcher:
         return start_year, start_month
 
 
+def url_exists(url):
+    try:
+        time.sleep(1)
+        res = urllib.request.urlopen(url)
+        if res.getcode() == 200:
+            return True
+    except urllib.error.HTTPError:
+        pass
+    return False
 
 
+def url_read_csv(url):
+    try:
+        time.sleep(1)
+        df = pd.read_csv(url)
+        df = df.rename(columns={
+            'symbol': 'market',
+        })
+        df['price'] = df['price'].astype('float64')
+        df['size'] = df['size'].astype('float64')
+        df['timestamp'] = pd.to_datetime(df['timestamp'], utc=True)
+        df['side'] = np.where(df['side'] == 'BUY', 1, -1).astype('int8')
+        return df
+    except urllib.error.HTTPError:
+        pass
+    return None

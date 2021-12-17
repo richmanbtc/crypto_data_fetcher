@@ -41,3 +41,7 @@ python3 -m unittest tests/test_*
 ```bash
 pyenv exec pipenv run python3 -m unittest tests/test_*
 ```
+
+### with docker
+
+docker-compose run --rm python python -m unittest tests/test_*

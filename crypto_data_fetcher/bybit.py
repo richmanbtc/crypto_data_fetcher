@@ -1,12 +1,18 @@
+from numbers import Number
+from typing import Optional, Union
 import pandas as pd
 from .utils import smart_append, create_null_logger, normalize_to_unix
+from .types import IHasTimestamp
+
 
 class BybitFetcher:
     def __init__(self, logger=None, ccxt_client=None):
         self.logger = create_null_logger() if logger is None else logger
         self.ccxt_client = ccxt_client
 
-    def fetch_ohlcv(self, df=None, start_time=None, interval_sec=None, market=None, price_type=None):
+    def fetch_ohlcv(self, df: Optional[pd.DataFrame], start_time: Optional[Union[IHasTimestamp, Number]],
+                    interval_sec: int,
+                    market: str, price_type: Optional[str]) -> Optional[pd.DataFrame]:
         limit = 200
 
         if start_time:
@@ -18,9 +24,9 @@ class BybitFetcher:
             from_time = int(df.index.max().timestamp()) + 1
 
         interval = {
-            1: 'D',
-            7: 'W',
-        }.get(interval_sec // (24 * 60 * 60)) or interval_sec // 60
+                       1: 'D',
+                       7: 'W',
+                   }.get(interval_sec // (24 * 60 * 60)) or interval_sec // 60
 
         is_linear = market.endswith('USDT')
 
@@ -90,7 +96,7 @@ class BybitFetcher:
                         'limit': limit
                     })['result']
 
-            if data is None or len(data) <= 1: # 最後を取り除くので最低2個必要
+            if data is None or len(data) <= 1:  # 最後を取り除くので最低2個必要
                 break
 
             # self.logger.debug(data)
@@ -133,12 +139,13 @@ class BybitFetcher:
     def calc_fr_from_premium_index(self, df_premium_index=None):
         df_premium_index = df_premium_index.reset_index()
 
-        df_premium_index['timestamp'] = df_premium_index['timestamp'].dt.floor('8H') + pd.to_timedelta(2 * 8, unit='hour')
+        df_premium_index['timestamp'] = df_premium_index['timestamp'].dt.floor('8H') + pd.to_timedelta(2 * 8,
+                                                                                                       unit='hour')
         df2 = pd.concat([
             df_premium_index.groupby('timestamp')['cl'].mean()
         ], axis=1)
 
         interest_rate = (0.0006 - 0.0003) / 3.0
-        df2['fr'] = df2['cl'] + (interest_rate  - df2['cl']).clip(-0.0005, 0.0005)
+        df2['fr'] = df2['cl'] + (interest_rate - df2['cl']).clip(-0.0005, 0.0005)
         df2 = df2[['fr']]
         return df2

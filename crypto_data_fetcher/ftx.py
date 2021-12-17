@@ -1,14 +1,20 @@
+from numbers import Number
+from typing import Optional, Union
 import math
 import time
 import pandas as pd
 from .utils import smart_append, create_null_logger, normalize_to_unix
+from .types import IHasTimestamp
+
 
 class FtxFetcher:
     def __init__(self, logger=None, ccxt_client=None):
         self.logger = create_null_logger() if logger is None else logger
         self.ccxt_client = ccxt_client
 
-    def fetch_ohlcv(self, df=None, start_time=None, interval_sec=None, market=None, price_type=None):
+    def fetch_ohlcv(self, df: Optional[pd.DataFrame], start_time: Optional[Union[IHasTimestamp, Number]],
+                    interval_sec: int,
+                    market: str, price_type: Optional[str]) -> Optional[pd.DataFrame]:
         limit = 5000
 
         if df is not None and df.shape[0]:
@@ -31,14 +37,14 @@ class FtxFetcher:
 
         while from_time < total_end_time:
             end_time = from_time + interval_sec * limit
-            end_time = min([end_time, total_end_time]) # 未来時刻だと何も返らないので
+            end_time = min([end_time, total_end_time])  # 未来時刻だと何も返らないので
             self.logger.debug('{} {} {}'.format(market, from_time, end_time))
 
             if price_type == 'index':
                 data = self.ccxt_client.publicGetIndexesMarketNameCandles({
                     'market_name': market.replace('-PERP', ''),
                     'start_time': from_time,
-                    'end_time': end_time - 1, # キャッシュを無効にするために必要。境界値を含む仕様っぽいので含まないように調整
+                    'end_time': end_time - 1,  # キャッシュを無効にするために必要。境界値を含む仕様っぽいので含まないように調整
                     'resolution': interval_sec,
                     'limit': limit
                 })['result']
@@ -46,7 +52,7 @@ class FtxFetcher:
                 data = self.ccxt_client.publicGetMarketsMarketNameCandles({
                     'market_name': market,
                     'start_time': from_time,
-                    'end_time': end_time - 1, # キャッシュを無効にするために必要。境界値を含む仕様っぽいので含まないように調整
+                    'end_time': end_time - 1,  # キャッシュを無効にするために必要。境界値を含む仕様っぽいので含まないように調整
                     'resolution': interval_sec,
                     'limit': limit
                 })['result']
@@ -88,8 +94,9 @@ class FtxFetcher:
             df = df[df.index != df.index.max()]
             return df
 
-    def fetch_fr(self, df=None, start_time=None, market=None):
-        limit = 1000 # undocumented
+    def fetch_fr(self, df: Optional[pd.DataFrame], start_time: Union[IHasTimestamp, Number],
+                 market: str) -> pd.DataFrame:
+        limit = 1000  # undocumented
         interval_sec = 60 * 60
 
         if df is not None and df.shape[0]:
@@ -109,13 +116,13 @@ class FtxFetcher:
 
         while from_time < total_end_time:
             end_time = from_time + interval_sec * limit
-            end_time = min([end_time, total_end_time]) # 未来時刻だと何も返らないので
+            end_time = min([end_time, total_end_time])  # 未来時刻だと何も返らないので
             self.logger.debug('{} {} {}'.format(market, from_time, end_time))
 
             data = self.ccxt_client.publicGetFundingRates({
                 'future': market,
                 'start_time': from_time,
-                'end_time': end_time - 1, # キャッシュを無効にするために必要。境界値を含む仕様っぽいので含まないように調整
+                'end_time': end_time - 1,  # キャッシュを無効にするために必要。境界値を含む仕様っぽいので含まないように調整
                 'limit': limit
             })['result']
 
@@ -145,7 +152,7 @@ class FtxFetcher:
             return smart_append(df, pd.concat(dfs).set_index('timestamp'))
 
     def fetch_my_trades(self, df=None, start_time=None, market=None):
-        limit = 5000 # undocumented
+        limit = 5000  # undocumented
 
         if df is not None and df.shape[0]:
             from_time = math.floor(df.index.max().timestamp())
@@ -166,7 +173,7 @@ class FtxFetcher:
 
             data = self.ccxt_client.fetch_my_trades(market, params={
                 'start_time': from_time,
-                'end_time': end_time, # キャッシュを無効にするために必要。多分、境界値を含む仕様。漏らさないように重複させて取得
+                'end_time': end_time,  # キャッシュを無効にするために必要。多分、境界値を含む仕様。漏らさないように重複させて取得
                 'limit': limit
             })
 
