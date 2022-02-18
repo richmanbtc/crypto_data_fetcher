@@ -19,12 +19,12 @@ pip install "git+https://github.com/richmanbtc/crypto_data_fetcher.git@v0.0.18#e
 
 |exchange|market_type|ohlcv|mark ohlcv|funding rate|premium index|
 |:-:|:-:|:-:|:-:|:-:|:-:|
-|binance|spot|o|o|o|x|
+|binance|spot|o|x|x|x|
 |binance|future|o|o|o|x|
-|binance|derivative|o|o|o|x|
 |bybit|inverse|o|o|o|o|
 |bybit|usdt|o|o|o|o|
 |ftx|all|o|o|o|x|
+|kraken|spot|o|x|x|x|
 
 ## License
 
