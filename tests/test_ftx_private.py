@@ -23,13 +23,13 @@ def create_ccxt_client():
         'headers': headers,
     })
 
-class TestFtxPrivate(TestCase):
-    def test_fetch_my_trades(self):
-        ftx = create_ccxt_client()
-        fetcher = FtxFetcher(ccxt_client=ftx)
-
-        df = fetcher.fetch_my_trades(
-            market='BTC-PERP',
-        )
-
-        print(df)
+# class TestFtxPrivate(TestCase):
+#     def test_fetch_my_trades(self):
+#         ftx = create_ccxt_client()
+#         fetcher = FtxFetcher(ccxt_client=ftx)
+#
+#         df = fetcher.fetch_my_trades(
+#             market='BTC-PERP',
+#         )
+#
+#         print(df)
